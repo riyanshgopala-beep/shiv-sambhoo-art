@@ -43,6 +43,24 @@
             color: white;
             cursor: pointer;
             margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        #downloadBtn {
+            background-color: #444;
+        }
+        
+        #downloadBtn.active {
+            background-color: #ffdd00; /* glowing yellow */
+            color: black;
+            box-shadow: 0 0 15px #ffdd00;
+        }
+        
+        #downloadBtn:disabled {
+            background-color: #333;
+            color: #666;
+            cursor: not-allowed;
+            opacity: 0.6;
         }
 
         #galaxy {
@@ -61,37 +79,64 @@
         <img src="shops/shiv-1/preview.jpg" alt="Shiv Art 1">
         <div>4K Printable PDF</div>
         <br>
-        <button id="buyBtn">BUY ₹199</button>
+        <button id="buyBtn">BUY ₹1</button>
         <button id="downloadBtn" disabled>DOWNLOAD</button>
     </div>
 </div>
 
 <script src="js/galaxy.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     const buyBtn = document.getElementById("buyBtn");
     const downloadBtn = document.getElementById("downloadBtn");
 
-    // Tumhara fixed Razorpay payment link
-    const razorpayLink = "https://razorpay.me/@alokkumar6547";
-
+    // Razorpay key - apni actual key yahan lagayein
+    const RAZORPAY_KEY = "YOUR_RAZORPAY_KEY"; // replace with your key
+    
     // PDF file path
     const pdfFile = "shops/shiv-1/shiv1.pdf";
 
     buyBtn.addEventListener("click", function() {
-        const paymentWindow = window.open(razorpayLink, "_blank");
-
-        const paymentCheck = setInterval(() => {
-            if (paymentWindow.closed) {
-                clearInterval(paymentCheck);
-                alert("Payment complete! Download button active hai.");
-                downloadBtn.disabled = false;
+        const options = {
+            "key": RAZORPAY_KEY,
+            "amount": 100, // ₹1 in paise (100 paise = ₹1)
+            "currency": "INR",
+            "name": "Shiv Sambhoo Art",
+            "description": "4K Printable PDF - Shiv Art 1",
+            "image": "shops/shiv-1/preview.jpg",
+            "handler": function (response){
+                alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
+                downloadBtn.disabled = false; // enable download button
+                downloadBtn.classList.add("active"); // bulb ON effect
+            },
+            "prefill": {
+                "name": "",
+                "email": "",
+                "contact": ""
+            },
+            "notes": {
+                "address": "Shiv Art PDF Purchase"
+            },
+            "theme": {
+                "color": "#7c7cff"
             }
-        }, 500);
+        };
+        
+        const rzp1 = new Razorpay(options);
+        
+        // Optional: Handle payment failure
+        rzp1.on('payment.failed', function (response){
+            alert("Payment Failed: " + response.error.description);
+        });
+        
+        rzp1.open();
     });
 
     downloadBtn.addEventListener("click", function() {
-        window.location.href = pdfFile;
+        // Open PDF in new tab for download
+        window.open(pdfFile, '_blank');
         downloadBtn.disabled = true; // fir disable kar do
+        downloadBtn.classList.remove("active"); // bulb OFF effect
     });
 </script>
 
