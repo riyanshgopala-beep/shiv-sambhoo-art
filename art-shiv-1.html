@@ -1,9 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Shiv Art 1</title>
     <link rel="stylesheet" href="css/shell.css">
+    <style>
+        /* Extra spacing for canvas */
+        body {
+            margin: 0;
+            background: black;
+            color: white;
+            font-family: sans-serif;
+        }
+
+        .art-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            max-width: 320px;
+            padding: 20px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            text-align: center;
+        }
+
+        .card img {
+            width: 100%;
+            border-radius: 14px;
+            margin-bottom: 15px;
+        }
+
+        .card button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            background: #7c7cff;
+            color: white;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        #galaxy {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+        }
+    </style>
 </head>
 <body>
 
@@ -11,16 +58,42 @@
 
 <div class="art-wrapper">
     <div class="card">
-        <img src="shops/shiv-1/preview.jpg">
+        <img src="shops/shiv-1/preview.jpg" alt="Shiv Art 1">
         <div>4K Printable PDF</div>
         <br>
-        <a href="shops/shiv-1/shiv1.pdf" download>
-            <button>Download</button>
-        </a>
+        <button id="buyBtn">BUY ₹199</button>
+        <button id="downloadBtn" disabled>DOWNLOAD</button>
     </div>
 </div>
 
 <script src="js/galaxy.js"></script>
+<script>
+    const buyBtn = document.getElementById("buyBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    // Tumhara fixed Razorpay payment link
+    const razorpayLink = "https://razorpay.me/@alokkumar6547";
+
+    // PDF file path
+    const pdfFile = "shops/shiv-1/shiv1.pdf";
+
+    buyBtn.addEventListener("click", function() {
+        const paymentWindow = window.open(razorpayLink, "_blank");
+
+        const paymentCheck = setInterval(() => {
+            if (paymentWindow.closed) {
+                clearInterval(paymentCheck);
+                alert("Payment complete! Download button active hai.");
+                downloadBtn.disabled = false;
+            }
+        }, 500);
+    });
+
+    downloadBtn.addEventListener("click", function() {
+        window.location.href = pdfFile;
+        downloadBtn.disabled = true; // fir disable kar do
+    });
+</script>
 
 </body>
 </html>
