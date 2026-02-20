@@ -5,7 +5,6 @@
     <title>Shiv Art 1</title>
     <link rel="stylesheet" href="css/shell.css">
     <style>
-        /* Extra spacing for canvas */
         body {
             margin: 0;
             background: black;
@@ -46,16 +45,20 @@
             transition: all 0.3s ease;
         }
 
+        #buyBtn {
+            background-color: #7c7cff;
+        }
+
         #downloadBtn {
             background-color: #444;
         }
-        
+
         #downloadBtn.active {
             background-color: #ffdd00; /* glowing yellow */
             color: black;
             box-shadow: 0 0 15px #ffdd00;
         }
-        
+
         #downloadBtn:disabled {
             background-color: #333;
             color: #666;
@@ -90,32 +93,31 @@
     const buyBtn = document.getElementById("buyBtn");
     const downloadBtn = document.getElementById("downloadBtn");
 
-    // Razorpay key - apni actual key yahan lagayein
-    const RAZORPAY_KEY = "YOUR_RAZORPAY_KEY"; // replace with your key
-    
-    // PDF file path
+    const RAZORPAY_KEY = "YOUR_RAZORPAY_KEY"; // Replace with your Razorpay Key
     const pdfFile = "shops/shiv-1/shiv1.pdf";
+
+    // Start with download disabled
+    downloadBtn.disabled = true;
+    downloadBtn.classList.remove("active");
 
     buyBtn.addEventListener("click", function() {
         const options = {
             "key": RAZORPAY_KEY,
-            "amount": 100, // ₹1 in paise (100 paise = ₹1)
+            "amount": 100, // ₹1 in paise
             "currency": "INR",
             "name": "Shiv Sambhoo Art",
             "description": "4K Printable PDF - Shiv Art 1",
             "image": "shops/shiv-1/preview.jpg",
             "handler": function (response){
+                // Payment success
                 alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
-                downloadBtn.disabled = false; // enable download button
-                downloadBtn.classList.add("active"); // bulb ON effect
+                downloadBtn.disabled = false;
+                downloadBtn.classList.add("active");
             },
             "prefill": {
                 "name": "",
                 "email": "",
                 "contact": ""
-            },
-            "notes": {
-                "address": "Shiv Art PDF Purchase"
             },
             "theme": {
                 "color": "#7c7cff"
@@ -124,7 +126,6 @@
         
         const rzp1 = new Razorpay(options);
         
-        // Optional: Handle payment failure
         rzp1.on('payment.failed', function (response){
             alert("Payment Failed: " + response.error.description);
         });
@@ -133,10 +134,18 @@
     });
 
     downloadBtn.addEventListener("click", function() {
-        // Open PDF in new tab for download
-        window.open(pdfFile, '_blank');
-        downloadBtn.disabled = true; // fir disable kar do
-        downloadBtn.classList.remove("active"); // bulb OFF effect
+        // Open PDF in new tab and trigger download
+        const link = document.createElement("a");
+        link.href = pdfFile;
+        link.download = pdfFile.split("/").pop(); // filename
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // After download, reset buttons
+        downloadBtn.disabled = true;
+        downloadBtn.classList.remove("active");
+        buyBtn.disabled = false;
     });
 </script>
 
