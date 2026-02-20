@@ -1,0 +1,46 @@
+.card{
+    max-width:320px;
+    margin:0;  /* मार्जिन हटाया गया */
+    padding:20px;
+    border-radius:20px;
+    background:rgba(255,255,255,0.05);
+    backdrop-filter:blur(20px);
+    text-align:center;
+}
+
+.card img{
+    width:100%;
+    border-radius:14px;
+    margin-bottom:15px;
+}
+
+.card button{
+    padding:10px 20px;
+    border:none;
+    border-radius:12px;
+    background:#7c7cff;
+    color:white;
+    cursor:pointer;
+}
+
+body {
+    margin: 0;
+    background: black;
+    color: white;
+}
+
+#galaxy {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+}
+
+.art-wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    padding: 100px 20px;
+}
