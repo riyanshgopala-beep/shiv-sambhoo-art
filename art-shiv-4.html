@@ -1,9 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- ✅ VIEWPORT META TAG - Mobile ke liye important -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shiv Art 4</title>
     <link rel="stylesheet" href="css/shell.css">
+    <style>
+        /* Extra spacing for canvas */
+        body {
+            margin: 0;
+            background: black;
+            color: white;
+            font-family: sans-serif;
+        }
+
+        .art-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            max-width: 320px;
+            padding: 20px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            text-align: center;
+        }
+
+        .card img {
+            width: 100%;
+            border-radius: 14px;
+            margin-bottom: 15px;
+        }
+
+        .card button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            background: #7c7cff;
+            color: white;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        #downloadBtn {
+            background-color: #444;
+        }
+        
+        #downloadBtn.active {
+            background-color: #ffdd00; /* glowing yellow */
+            color: black;
+            box-shadow: 0 0 15px #ffdd00;
+        }
+        
+        #downloadBtn:disabled {
+            background-color: #333;
+            color: #666;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Success message style */
+        #successMsg {
+            color: #00ff99;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Buy button disabled style */
+        #buyBtn:disabled {
+            background-color: #444;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        #galaxy {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+        }
+    </style>
 </head>
 <body>
 
@@ -11,16 +99,114 @@
 
 <div class="art-wrapper">
     <div class="card">
-        <img src="shops/shiv-4/preview.jpg">
+        <img src="shops/shiv-4/preview.jpg" alt="Shiv Art 4">
         <div>4K Printable PDF</div>
         <br>
-        <a href="shops/shiv-4/shiv4.pdf" download>
-            <button>Download</button>
-        </a>
+        <button id="buyBtn">BUY ₹1</button>
+        <button id="downloadBtn" disabled>DOWNLOAD</button>
+        <!-- Success message -->
+        <p id="successMsg">Payment Successful ✓</p>
     </div>
 </div>
 
 <script src="js/galaxy.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    const buyBtn = document.getElementById("buyBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const successMsg = document.getElementById("successMsg");
+
+    // 🔴 SIRF YEH LINE CHANGE KARNA HAI - apni actual live api key yahan daalo
+    const RAZORPAY_KEY = "rzp_live_SIP5MG5Hrky7rq"; // aapki actual live api key
+    
+    // PDF file path
+    const pdfFile = "shops/shiv-4/shiv4.pdf";
+
+    buyBtn.addEventListener("click", function() {
+        const options = {
+            "key": RAZORPAY_KEY,
+            "amount": 100, // ₹1 ke liye (1 × 100 = 100 paise)
+            "currency": "INR",
+            "name": "Shiv Sambhoo Art",
+            "description": "4K Printable PDF - Shiv Art 4",
+            "image": "shops/shiv-4/preview.jpg",
+            "handler": function (response){
+                // ✅ PROFESSIONAL VERSION - No alert popup
+                // Payment success - direct enable download
+                downloadBtn.disabled = false;
+                downloadBtn.classList.add("active"); // bulb ON effect
+                
+                // Buy button disable kar dete hain
+                buyBtn.disabled = true;
+                
+                // Smooth success message show
+                successMsg.style.display = "block";
+                
+                // Optional: Payment ID console mein dekh sakte hain (user ko nahi dikhega)
+                console.log("Payment Success: " + response.razorpay_payment_id);
+            },
+            "prefill": {
+                "name": "",
+                "email": "",
+                "contact": ""
+            },
+            "notes": {
+                "address": "Shiv Art PDF Purchase"
+            },
+            "theme": {
+                "color": "#7c7cff"
+            }
+        };
+        
+        const rzp1 = new Razorpay(options);
+        
+        // Optional: Handle payment failure
+        rzp1.on('payment.failed', function (response){
+            alert("Payment Failed: " + response.error.description);
+        });
+        
+        rzp1.open();
+    });
+
+    // ✅ UPDATED DOWNLOAD BUTTON - Direct Download (Without Opening)
+    downloadBtn.addEventListener("click", function() {
+        // Fetch PDF as blob and force download
+        fetch(pdfFile)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('PDF not found');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Create blob URL
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                // Create hidden download link
+                const link = document.createElement("a");
+                link.href = blobUrl;
+                link.download = "Shiv_Art_4.pdf"; // file name
+                document.body.appendChild(link);
+                
+                // Trigger download
+                link.click();
+                
+                // Clean up
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(blobUrl);
+                
+                // Reset buttons after download
+                downloadBtn.disabled = true;
+                downloadBtn.classList.remove("active"); // bulb OFF effect
+                buyBtn.disabled = false; // buy button enable again
+                successMsg.style.display = "none"; // hide success message
+            })
+            .catch(error => {
+                console.error('Download failed:', error);
+                alert("Download failed. Please try again.");
+            });
+    });
+</script>
 
 </body>
 </html>
