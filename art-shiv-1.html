@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- ✅ VIEWPORT META TAG - Mobile ke liye important -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shiv Art 1</title>
     <link rel="stylesheet" href="css/shell.css">
     <style>
@@ -123,7 +125,7 @@
     buyBtn.addEventListener("click", function() {
         const options = {
             "key": RAZORPAY_KEY,
-            "amount": 100, // ₹1 ke liye (1 × 100 = 19900 paise)
+            "amount": 19900, // ₹199 ke liye (199 × 100 = 19900 paise)
             "currency": "INR",
             "name": "Shiv Sambhoo Art",
             "description": "4K Printable PDF - Shiv Art 1",
