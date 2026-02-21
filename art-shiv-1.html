@@ -100,7 +100,7 @@
         <img src="shops/shiv-1/preview.jpg" alt="Shiv Art 1">
         <div>4K Printable PDF</div>
         <br>
-        <button id="buyBtn">BUY ₹1</button>
+        <button id="buyBtn">BUY ₹199</button>
         <button id="downloadBtn" disabled>DOWNLOAD</button>
         <!-- Success message -->
         <p id="successMsg">Payment Successful ✓</p>
@@ -123,7 +123,7 @@
     buyBtn.addEventListener("click", function() {
         const options = {
             "key": RAZORPAY_KEY,
-            "amount": 100, // ₹1 ke liye (199 × 100 = 100 paise)
+            "amount": 19900, // ₹199 ke liye (199 × 100 = 19900 paise)
             "currency": "INR",
             "name": "Shiv Sambhoo Art",
             "description": "4K Printable PDF - Shiv Art 1",
@@ -166,11 +166,43 @@
         rzp1.open();
     });
 
+    // ✅ UPDATED DOWNLOAD BUTTON - Direct Download (Without Opening)
     downloadBtn.addEventListener("click", function() {
-        // Open PDF in new tab for download
-        window.open(pdfFile, '_blank');
-        downloadBtn.disabled = true; // fir disable kar do
-        downloadBtn.classList.remove("active"); // bulb OFF effect
+        // Fetch PDF as blob and force download
+        fetch(pdfFile)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('PDF not found');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Create blob URL
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                // Create hidden download link
+                const link = document.createElement("a");
+                link.href = blobUrl;
+                link.download = "Shiv_Art_1.pdf"; // file name
+                document.body.appendChild(link);
+                
+                // Trigger download
+                link.click();
+                
+                // Clean up
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(blobUrl);
+                
+                // Reset buttons after download
+                downloadBtn.disabled = true;
+                downloadBtn.classList.remove("active"); // bulb OFF effect
+                buyBtn.disabled = false; // buy button enable again
+                successMsg.style.display = "none"; // hide success message
+            })
+            .catch(error => {
+                console.error('Download failed:', error);
+                alert("Download failed. Please try again.");
+            });
     });
 </script>
 
