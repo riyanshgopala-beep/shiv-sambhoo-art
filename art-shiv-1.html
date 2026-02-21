@@ -63,6 +63,27 @@
             opacity: 0.6;
         }
 
+        /* Success message style */
+        #successMsg {
+            color: #00ff99;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Buy button disabled style */
+        #buyBtn:disabled {
+            background-color: #444;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
         #galaxy {
             position: fixed;
             inset: 0;
@@ -81,6 +102,8 @@
         <br>
         <button id="buyBtn">BUY ₹1</button>
         <button id="downloadBtn" disabled>DOWNLOAD</button>
+        <!-- Success message -->
+        <p id="successMsg">Payment Successful ✓</p>
     </div>
 </div>
 
@@ -89,6 +112,7 @@
 <script>
     const buyBtn = document.getElementById("buyBtn");
     const downloadBtn = document.getElementById("downloadBtn");
+    const successMsg = document.getElementById("successMsg");
 
     // 🔴 SIRF YEH LINE CHANGE KARNA HAI - apni actual live api key yahan daalo
     const RAZORPAY_KEY = "rzp_live_SIP5MG5Hrky7rq"; // aapki actual live api key
@@ -99,15 +123,25 @@
     buyBtn.addEventListener("click", function() {
         const options = {
             "key": RAZORPAY_KEY,
-            "amount": 100, // ₹1 in paise (100 paise = ₹1)
+            "amount": 19900, // ₹199 ke liye (199 × 100 = 19900 paise)
             "currency": "INR",
             "name": "Shiv Sambhoo Art",
             "description": "4K Printable PDF - Shiv Art 1",
             "image": "shops/shiv-1/preview.jpg",
             "handler": function (response){
-                alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
-                downloadBtn.disabled = false; // enable download button
+                // ✅ PROFESSIONAL VERSION - No alert popup
+                // Payment success - direct enable download
+                downloadBtn.disabled = false;
                 downloadBtn.classList.add("active"); // bulb ON effect
+                
+                // Buy button disable kar dete hain
+                buyBtn.disabled = true;
+                
+                // Smooth success message show
+                successMsg.style.display = "block";
+                
+                // Optional: Payment ID console mein dekh sakte hain (user ko nahi dikhega)
+                console.log("Payment Success: " + response.razorpay_payment_id);
             },
             "prefill": {
                 "name": "",
