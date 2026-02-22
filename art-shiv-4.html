@@ -102,7 +102,7 @@
         <img src="shops/shiv-4/preview.jpg" alt="Shiv Art 4">
         <div>4K Printable PDF</div>
         <br>
-        <button id="buyBtn">BUY ₹1</button>
+        <button id="buyBtn">BUY ₹35</button>
         <button id="downloadBtn" disabled>DOWNLOAD</button>
         <!-- Success message -->
         <p id="successMsg">Payment Successful ✓</p>
@@ -125,7 +125,7 @@
     buyBtn.addEventListener("click", function() {
         const options = {
             "key": RAZORPAY_KEY,
-            "amount": 100, // ₹1 ke liye (1 × 100 = 100 paise)
+            "amount": 3500, // ₹35 ke liye (35 × 100 = 100 paise)
             "currency": "INR",
             "name": "Shiv Sambhoo Art",
             "description": "4K Printable PDF - Shiv Art 4",
