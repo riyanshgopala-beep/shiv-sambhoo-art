@@ -155,10 +155,11 @@
     
     // File paths
     const pdfFile = "shops/shiv-1/shiv1.pdf";
-    const hdFile = "shops/shiv-1/shiv1-hd.jpg"; // HD file path - ye file exist karni chahiye
+    const hdFile = "shops/shiv-1/shiv1-hd.jpg"; // HD file path
     
-    // Track if download has been used
-    let downloadUsed = false;
+    // Track individual downloads
+    let pdfDownloaded = false;
+    let hdDownloaded = false;
 
     // Buy button click - Payment start
     buyBtn.addEventListener("click", function() {
@@ -167,7 +168,7 @@
             "amount": 3500, // ₹35 ke liye (35 × 100 = 3500 paise)
             "currency": "INR",
             "name": "Shiv Sambhoo Art",
-            "description": "HD + PDF Download - Shiv Art 1",
+            "description": "PDF + HD Bundle - Shiv Art 1",
             "image": "shops/shiv-1/preview.jpg",
             "handler": function (response){
                 // ✅ Payment success - enable both download buttons
@@ -184,8 +185,9 @@
                 // Show success message
                 successMsg.style.display = "block";
                 
-                // Reset download tracker
-                downloadUsed = false;
+                // Reset download trackers
+                pdfDownloaded = false;
+                hdDownloaded = false;
                 
                 console.log("Payment Success: " + response.razorpay_payment_id);
             },
@@ -212,14 +214,8 @@
         rzp1.open();
     });
 
-    // Common download handler function
-    function handleDownload(filePath, fileName) {
-        // Agar already download ho chuka hai to return
-        if (downloadUsed) {
-            alert("You have already downloaded the files. Please purchase again.");
-            return;
-        }
-
+    // Download function for individual files
+    function downloadFile(filePath, fileName, type) {
         // Fetch file and download
         fetch(filePath)
             .then(response => {
@@ -239,24 +235,27 @@
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(blobUrl);
 
-                // ✅ Download ke baad - disable both buttons
-                downloadPdfBtn.disabled = true;
-                downloadHdBtn.disabled = true;
+                // Mark which file was downloaded
+                if (type === "pdf") {
+                    pdfDownloaded = true;
+                    downloadPdfBtn.disabled = true;
+                    downloadPdfBtn.classList.remove("active");
+                    console.log("PDF downloaded");
+                }
 
-                // Remove glow from both buttons
-                downloadPdfBtn.classList.remove("active");
-                downloadHdBtn.classList.remove("active");
+                if (type === "hd") {
+                    hdDownloaded = true;
+                    downloadHdBtn.disabled = true;
+                    downloadHdBtn.classList.remove("active");
+                    console.log("HD downloaded");
+                }
 
-                // Enable buy button again
-                buyBtn.disabled = false;
-                
-                // Hide success message
-                successMsg.style.display = "none";
-
-                // Mark that download has been used
-                downloadUsed = true;
-
-                console.log("Download complete: " + fileName);
+                // Agar dono download ho gaye to buy button enable karo
+                if (pdfDownloaded && hdDownloaded) {
+                    buyBtn.disabled = false;
+                    successMsg.style.display = "none"; // Hide success message
+                    console.log("Both files downloaded - buy button enabled");
+                }
             })
             .catch(error => {
                 console.error('Download failed:', error);
@@ -266,12 +265,16 @@
 
     // PDF Download button click
     downloadPdfBtn.addEventListener("click", function() {
-        handleDownload(pdfFile, "Shiv_Art_1.pdf");
+        if (!pdfDownloaded) {
+            downloadFile(pdfFile, "Shiv_Art_1.pdf", "pdf");
+        }
     });
 
     // HD Download button click
     downloadHdBtn.addEventListener("click", function() {
-        handleDownload(hdFile, "Shiv_Art_1_HD.jpg");
+        if (!hdDownloaded) {
+            downloadFile(hdFile, "Shiv_Art_1_HD.jpg", "hd");
+        }
     });
 </script>
 
