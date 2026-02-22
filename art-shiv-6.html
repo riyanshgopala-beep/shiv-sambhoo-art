@@ -46,19 +46,39 @@
             cursor: pointer;
             margin: 5px;
             transition: all 0.3s ease;
+            width: 100%;
         }
 
-        #downloadBtn {
+        /* PDF Download Button */
+        #downloadPdfBtn {
             background-color: #444;
         }
         
-        #downloadBtn.active {
+        #downloadPdfBtn.active {
             background-color: #ffdd00; /* glowing yellow */
             color: black;
             box-shadow: 0 0 15px #ffdd00;
         }
         
-        #downloadBtn:disabled {
+        #downloadPdfBtn:disabled {
+            background-color: #333;
+            color: #666;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* HD Download Button */
+        #downloadHdBtn {
+            background-color: #444;
+        }
+        
+        #downloadHdBtn.active {
+            background-color: #ffaa00; /* orange glow for HD */
+            color: black;
+            box-shadow: 0 0 15px #ffaa00;
+        }
+        
+        #downloadHdBtn:disabled {
             background-color: #333;
             color: #666;
             cursor: not-allowed;
@@ -86,6 +106,48 @@
             opacity: 0.6;
         }
 
+        /* Button container */
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        /* Progress Bar Styles */
+        .progress-container {
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .progress-bar-bg {
+            width: 100%;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-bar-fill {
+            width: 0%;
+            height: 8px;
+            background: #00ff99;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            color: #00ff99;
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .download-section {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
         #galaxy {
             position: fixed;
             inset: 0;
@@ -100,12 +162,39 @@
 <div class="art-wrapper">
     <div class="card">
         <img src="shops/shiv-6/preview.jpg" alt="Shiv Art 6">
-        <div>4K Printable PDF</div>
+        <div>4K Printable PDF + HD Image</div>
         <br>
         <button id="buyBtn">BUY ₹35</button>
-        <button id="downloadBtn" disabled>DOWNLOAD</button>
+        
+        <!-- Download buttons container with progress bars -->
+        <div class="button-container">
+            <!-- PDF Section -->
+            <div class="download-section">
+                <button id="downloadPdfBtn" disabled>DOWNLOAD PDF</button>
+                <!-- PDF Progress Bar -->
+                <div id="pdfProgressContainer" class="progress-container">
+                    <div class="progress-bar-bg">
+                        <div id="pdfProgressBar" class="progress-bar-fill"></div>
+                    </div>
+                    <small id="pdfProgressText" class="progress-text">0%</small>
+                </div>
+            </div>
+            
+            <!-- HD Section -->
+            <div class="download-section">
+                <button id="downloadHdBtn" disabled>DOWNLOAD HD</button>
+                <!-- HD Progress Bar -->
+                <div id="hdProgressContainer" class="progress-container">
+                    <div class="progress-bar-bg">
+                        <div id="hdProgressBar" class="progress-bar-fill"></div>
+                    </div>
+                    <small id="hdProgressText" class="progress-text">0%</small>
+                </div>
+            </div>
+        </div>
+        
         <!-- Success message -->
-        <p id="successMsg">Payment Successful ✓</p>
+        <p id="successMsg">✨ Payment Successful! Choose your download ✨</p>
     </div>
 </div>
 
@@ -113,36 +202,58 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     const buyBtn = document.getElementById("buyBtn");
-    const downloadBtn = document.getElementById("downloadBtn");
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+    const downloadHdBtn = document.getElementById("downloadHdBtn");
     const successMsg = document.getElementById("successMsg");
 
-    // 🔴 SIRF YEH LINE CHANGE KARNA HAI - apni actual live api key yahan daalo
-    const RAZORPAY_KEY = "rzp_live_SIP5MG5Hrky7rq"; // aapki actual live api key
+    // Progress bar elements
+    const pdfProgressContainer = document.getElementById("pdfProgressContainer");
+    const pdfProgressBar = document.getElementById("pdfProgressBar");
+    const pdfProgressText = document.getElementById("pdfProgressText");
     
-    // PDF file path
-    const pdfFile = "shops/shiv-6/shiv6.pdf";
+    const hdProgressContainer = document.getElementById("hdProgressContainer");
+    const hdProgressBar = document.getElementById("hdProgressBar");
+    const hdProgressText = document.getElementById("hdProgressText");
 
+    // 🔴 APNI LIVE API KEY YAHAN DAALO
+    const RAZORPAY_KEY = "rzp_test_SIPNGpbYz3lILW"; // Test key
+    
+    // File paths
+    const pdfFile = "shops/shiv-6/shiv6.pdf";
+    const hdFile = "shops/shiv-6/shiv6-hd.jpg"; // HD file path
+    
+    // Track individual downloads
+    let pdfDownloaded = false;
+    let hdDownloaded = false;
+
+    // Buy button click - Payment start
     buyBtn.addEventListener("click", function() {
         const options = {
             "key": RAZORPAY_KEY,
             "amount": 3500, // ₹35 ke liye (35 × 100 = 3500 paise)
             "currency": "INR",
             "name": "Shiv Sambhoo Art",
-            "description": "4K Printable PDF - Shiv Art 6",
+            "description": "PDF + HD Bundle - Shiv Art 1",
             "image": "shops/shiv-6/preview.jpg",
             "handler": function (response){
-                // ✅ PROFESSIONAL VERSION - No alert popup
-                // Payment success - direct enable download
-                downloadBtn.disabled = false;
-                downloadBtn.classList.add("active"); // bulb ON effect
-                
-                // Buy button disable kar dete hain
+                // ✅ Payment success - enable both download buttons
+                downloadPdfBtn.disabled = false;
+                downloadHdBtn.disabled = false;
+
+                // Add glow effect to both buttons
+                downloadPdfBtn.classList.add("active");
+                downloadHdBtn.classList.add("active");
+
+                // Disable buy button
                 buyBtn.disabled = true;
                 
-                // Smooth success message show
+                // Show success message
                 successMsg.style.display = "block";
                 
-                // Optional: Payment ID console mein dekh sakte hain (user ko nahi dikhega)
+                // Reset download trackers
+                pdfDownloaded = false;
+                hdDownloaded = false;
+                
                 console.log("Payment Success: " + response.razorpay_payment_id);
             },
             "prefill": {
@@ -151,7 +262,7 @@
                 "contact": ""
             },
             "notes": {
-                "address": "Shiv Art PDF Purchase"
+                "address": "Shiv Art HD + PDF Purchase"
             },
             "theme": {
                 "color": "#7c7cff"
@@ -160,7 +271,7 @@
         
         const rzp1 = new Razorpay(options);
         
-        // Optional: Handle payment failure
+        // Handle payment failure
         rzp1.on('payment.failed', function (response){
             alert("Payment Failed: " + response.error.description);
         });
@@ -168,43 +279,96 @@
         rzp1.open();
     });
 
-    // ✅ UPDATED DOWNLOAD BUTTON - Direct Download (Without Opening)
-    downloadBtn.addEventListener("click", function() {
-        // Fetch PDF as blob and force download
-        fetch(pdfFile)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('PDF not found');
-                }
-                return response.blob();
-            })
-            .then(blob => {
-                // Create blob URL
-                const blobUrl = window.URL.createObjectURL(blob);
-                
-                // Create hidden download link
+    // ✅ PLAY STORE STYLE DOWNLOAD WITH PROGRESS BAR
+    function downloadWithProgress(filePath, fileName, type) {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", filePath, true);
+        xhr.responseType = "blob";
+
+        // Select progress elements based on type
+        const progressContainer = type === "pdf" ? pdfProgressContainer : hdProgressContainer;
+        const progressBar = type === "pdf" ? pdfProgressBar : hdProgressBar;
+        const progressText = type === "pdf" ? pdfProgressText : hdProgressText;
+
+        // Show progress container
+        progressContainer.style.display = "block";
+        progressBar.style.width = "0%";
+        progressText.innerText = "0%";
+
+        // Progress tracking
+        xhr.onprogress = function(event) {
+            if (event.lengthComputable) {
+                const percent = Math.round((event.loaded / event.total) * 100);
+                progressBar.style.width = percent + "%";
+                progressText.innerText = percent + "%";
+            }
+        };
+
+        // Download complete
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                // Create download link
+                const blobUrl = window.URL.createObjectURL(xhr.response);
                 const link = document.createElement("a");
                 link.href = blobUrl;
-                link.download = "Shiv_Art_6.pdf"; // file name
+                link.download = fileName;
                 document.body.appendChild(link);
-                
-                // Trigger download
                 link.click();
-                
-                // Clean up
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(blobUrl);
-                
-                // Reset buttons after download
-                downloadBtn.disabled = true;
-                downloadBtn.classList.remove("active"); // bulb OFF effect
-                buyBtn.disabled = false; // buy button enable again
-                successMsg.style.display = "none"; // hide success message
-            })
-            .catch(error => {
-                console.error('Download failed:', error);
-                alert("Download failed. Please try again.");
-            });
+
+                // Show completed
+                progressText.innerText = "Completed ✓";
+                progressBar.style.width = "100%";
+
+                // Mark as downloaded
+                if (type === "pdf") {
+                    pdfDownloaded = true;
+                    downloadPdfBtn.disabled = true;
+                    downloadPdfBtn.classList.remove("active");
+                } else {
+                    hdDownloaded = true;
+                    downloadHdBtn.disabled = true;
+                    downloadHdBtn.classList.remove("active");
+                }
+
+                // Hide progress bar after 2 seconds
+                setTimeout(() => {
+                    progressContainer.style.display = "none";
+                    progressBar.style.width = "0%";
+                    progressText.innerText = "0%";
+                }, 2000);
+
+                // Agar dono download ho gaye to buy button enable karo
+                if (pdfDownloaded && hdDownloaded) {
+                    buyBtn.disabled = false;
+                    successMsg.style.display = "none";
+                    console.log("Both files downloaded - buy button enabled");
+                }
+            }
+        };
+
+        // Error handling
+        xhr.onerror = function() {
+            alert("Download failed. Please try again.");
+            progressContainer.style.display = "none";
+        };
+
+        xhr.send();
+    }
+
+    // PDF Download button click
+    downloadPdfBtn.addEventListener("click", function() {
+        if (!pdfDownloaded) {
+            downloadWithProgress(pdfFile, "Shiv_Art_6.pdf", "pdf");
+        }
+    });
+
+    // HD Download button click
+    downloadHdBtn.addEventListener("click", function() {
+        if (!hdDownloaded) {
+            downloadWithProgress(hdFile, "Shiv_Art_6_HD.jpg", "hd");
+        }
     });
 </script>
 
