@@ -46,6 +46,7 @@
             cursor: pointer;
             margin: 5px;
             transition: all 0.3s ease;
+            width: 100%;
         }
 
         /* PDF Download Button */
@@ -109,8 +110,42 @@
         .button-container {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 15px;
             margin-top: 10px;
+        }
+
+        /* Progress Bar Styles */
+        .progress-container {
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .progress-bar-bg {
+            width: 100%;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-bar-fill {
+            width: 0%;
+            height: 8px;
+            background: #00ff99;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            color: #00ff99;
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .download-section {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
         #galaxy {
@@ -131,10 +166,31 @@
         <br>
         <button id="buyBtn">BUY ₹35</button>
         
-        <!-- Download buttons container -->
+        <!-- Download buttons container with progress bars -->
         <div class="button-container">
-            <button id="downloadPdfBtn" disabled>DOWNLOAD PDF</button>
-            <button id="downloadHdBtn" disabled>DOWNLOAD HD</button>
+            <!-- PDF Section -->
+            <div class="download-section">
+                <button id="downloadPdfBtn" disabled>DOWNLOAD PDF</button>
+                <!-- PDF Progress Bar -->
+                <div id="pdfProgressContainer" class="progress-container">
+                    <div class="progress-bar-bg">
+                        <div id="pdfProgressBar" class="progress-bar-fill"></div>
+                    </div>
+                    <small id="pdfProgressText" class="progress-text">0%</small>
+                </div>
+            </div>
+            
+            <!-- HD Section -->
+            <div class="download-section">
+                <button id="downloadHdBtn" disabled>DOWNLOAD HD</button>
+                <!-- HD Progress Bar -->
+                <div id="hdProgressContainer" class="progress-container">
+                    <div class="progress-bar-bg">
+                        <div id="hdProgressBar" class="progress-bar-fill"></div>
+                    </div>
+                    <small id="hdProgressText" class="progress-text">0%</small>
+                </div>
+            </div>
         </div>
         
         <!-- Success message -->
@@ -150,8 +206,17 @@
     const downloadHdBtn = document.getElementById("downloadHdBtn");
     const successMsg = document.getElementById("successMsg");
 
+    // Progress bar elements
+    const pdfProgressContainer = document.getElementById("pdfProgressContainer");
+    const pdfProgressBar = document.getElementById("pdfProgressBar");
+    const pdfProgressText = document.getElementById("pdfProgressText");
+    
+    const hdProgressContainer = document.getElementById("hdProgressContainer");
+    const hdProgressBar = document.getElementById("hdProgressBar");
+    const hdProgressText = document.getElementById("hdProgressText");
+
     // 🔴 APNI LIVE API KEY YAHAN DAALO
-    const RAZORPAY_KEY = "rzp_test_SIPNGpbYz3lILW"; // aapki actual live api key
+    const RAZORPAY_KEY = "rzp_test_SIPNGpbYz3lILW"; // Test key
     
     // File paths
     const pdfFile = "shops/shiv-1/shiv1.pdf";
@@ -214,19 +279,36 @@
         rzp1.open();
     });
 
-    // Download function for individual files
-    function downloadFile(filePath, fileName, type) {
-        // Fetch file and download
-        fetch(filePath)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('File not found');
-                }
-                return response.blob();
-            })
-            .then(blob => {
-                // Create blob URL and download
-                const blobUrl = window.URL.createObjectURL(blob);
+    // ✅ PLAY STORE STYLE DOWNLOAD WITH PROGRESS BAR
+    function downloadWithProgress(filePath, fileName, type) {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", filePath, true);
+        xhr.responseType = "blob";
+
+        // Select progress elements based on type
+        const progressContainer = type === "pdf" ? pdfProgressContainer : hdProgressContainer;
+        const progressBar = type === "pdf" ? pdfProgressBar : hdProgressBar;
+        const progressText = type === "pdf" ? pdfProgressText : hdProgressText;
+
+        // Show progress container
+        progressContainer.style.display = "block";
+        progressBar.style.width = "0%";
+        progressText.innerText = "0%";
+
+        // Progress tracking
+        xhr.onprogress = function(event) {
+            if (event.lengthComputable) {
+                const percent = Math.round((event.loaded / event.total) * 100);
+                progressBar.style.width = percent + "%";
+                progressText.innerText = percent + "%";
+            }
+        };
+
+        // Download complete
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                // Create download link
+                const blobUrl = window.URL.createObjectURL(xhr.response);
                 const link = document.createElement("a");
                 link.href = blobUrl;
                 link.download = fileName;
@@ -235,45 +317,57 @@
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(blobUrl);
 
-                // Mark which file was downloaded
+                // Show completed
+                progressText.innerText = "Completed ✓";
+                progressBar.style.width = "100%";
+
+                // Mark as downloaded
                 if (type === "pdf") {
                     pdfDownloaded = true;
                     downloadPdfBtn.disabled = true;
                     downloadPdfBtn.classList.remove("active");
-                    console.log("PDF downloaded");
-                }
-
-                if (type === "hd") {
+                } else {
                     hdDownloaded = true;
                     downloadHdBtn.disabled = true;
                     downloadHdBtn.classList.remove("active");
-                    console.log("HD downloaded");
                 }
+
+                // Hide progress bar after 2 seconds
+                setTimeout(() => {
+                    progressContainer.style.display = "none";
+                    progressBar.style.width = "0%";
+                    progressText.innerText = "0%";
+                }, 2000);
 
                 // Agar dono download ho gaye to buy button enable karo
                 if (pdfDownloaded && hdDownloaded) {
                     buyBtn.disabled = false;
-                    successMsg.style.display = "none"; // Hide success message
+                    successMsg.style.display = "none";
                     console.log("Both files downloaded - buy button enabled");
                 }
-            })
-            .catch(error => {
-                console.error('Download failed:', error);
-                alert("Download failed. Please try again.");
-            });
+            }
+        };
+
+        // Error handling
+        xhr.onerror = function() {
+            alert("Download failed. Please try again.");
+            progressContainer.style.display = "none";
+        };
+
+        xhr.send();
     }
 
     // PDF Download button click
     downloadPdfBtn.addEventListener("click", function() {
         if (!pdfDownloaded) {
-            downloadFile(pdfFile, "Shiv_Art_1.pdf", "pdf");
+            downloadWithProgress(pdfFile, "Shiv_Art_1.pdf", "pdf");
         }
     });
 
     // HD Download button click
     downloadHdBtn.addEventListener("click", function() {
         if (!hdDownloaded) {
-            downloadFile(hdFile, "Shiv_Art_1_HD.jpg", "hd");
+            downloadWithProgress(hdFile, "Shiv_Art_1_HD.jpg", "hd");
         }
     });
 </script>
